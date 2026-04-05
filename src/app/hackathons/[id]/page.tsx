@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeftRight, Info, BarChart3, Calendar, Trophy, Users, 
-  UploadCloud, ListOrdered, Clock, Lock
+  UploadCloud, ListOrdered, Clock, Lock, BookOpen, X
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useRouter, useParams } from 'next/navigation';
@@ -11,13 +11,13 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TeamCard from '@/components/TeamCard';
 import EmptyState from '@/components/ui/EmptyState';
-import { getStorage, STORAGE_KEYS } from '@/lib/storage';
+import { getStorage, setStorage, STORAGE_KEYS } from '@/lib/storage';
 
 import mockHackathonDetails from '@/data/mock/public_hackathon_detail.json';
 import mockTeams from '@/data/mock/public_teams.json';
 import mockLeaderboards from '@/data/mock/public_leaderboard.json';
 
-const TABS = ['Overview', 'Eval', 'Schedule', 'Prize', 'Teams', 'Submit', 'Leaderboard'];
+const TABS = ['Overview', 'Eval', 'Schedule', 'Prize', 'Teams', 'Rules', 'Leaderboard'];
 
 const SIDEBAR_ITEMS = [
   { id: 'Overview', icon: Info, label: 'Overview' },
@@ -25,7 +25,7 @@ const SIDEBAR_ITEMS = [
   { id: 'Schedule', icon: Calendar, label: 'Schedule' },
   { id: 'Prize', icon: Trophy, label: 'Prize' },
   { id: 'Teams', icon: Users, label: 'Teams' },
-  { id: 'Submit', icon: UploadCloud, label: 'Submit' },
+  { id: 'Rules', icon: BookOpen, label: 'Rules' },
   { id: 'Leaderboard', icon: ListOrdered, label: 'Leaderboard' },
 ];
 
@@ -34,9 +34,18 @@ const HackathonDetailPage = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('Overview');
   const [rawTeams, setRawTeams] = useState<any[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
   
+  // Form State
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [submitTeam, setSubmitTeam] = useState('');
+  const [submitData, setSubmitData] = useState<Record<string, string>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   useEffect(() => {
     setRawTeams(getStorage(STORAGE_KEYS.TEAMS, mockTeams));
+    setSubmissions(getStorage(STORAGE_KEYS.SUBMISSIONS, []));
   }, []);
   
   // Find specific detail data
@@ -121,12 +130,73 @@ const HackathonDetailPage = () => {
     }))
   }));
 
-  // Filter leaderboard
+  // Leaderboard \u0026 Submissions logic
   const rawLeaderboard = mockLeaderboards.hackathonSlug === id 
     ? mockLeaderboards.entries 
     : mockLeaderboards.extraLeaderboards?.find(lb => lb.hackathonSlug === id)?.entries || [];
   
-  const leaderboardEntries = [...rawLeaderboard].sort((a: any, b: any) => b.score - a.score);
+  let allLeaderboardEntries: any[] = [...rawLeaderboard];
+  
+  // Ad-hoc merge for just submitted teams that don't have scores yet
+  submissions.forEach(sub => {
+    if (sub.hackathonSlug === id && !allLeaderboardEntries.some(r => r.teamName === sub.teamName)) {
+      allLeaderboardEntries.push({ teamName: sub.teamName, score: 'Pending' });
+    }
+  });
+
+  const rankedEntries = allLeaderboardEntries.sort((a, b) => {
+    const scoreA = typeof a.score === 'number' ? a.score : 0;
+    const scoreB = typeof b.score === 'number' ? b.score : 0;
+    return scoreB - scoreA; // Pending (0) goes to bot of scored list
+  });
+
+  const notSubmittedTeams = hackathonTeams.filter(team => 
+    !allLeaderboardEntries.some(r => r.teamName === team.name)
+  );
+
+  // Submission items logic
+  const submissionItems = detailData?.sections?.submit?.submissionItems || [];
+  const visibleSubItems = submissionItems.filter((item: any) => item.format !== 'text');
+  const textOnlyItems = submissionItems.filter((item: any) => item.format === 'text');
+  const additionalPlaceholder = textOnlyItems.length > 0 
+    ? `Provide ${textOnlyItems.map((i: any) => i.title).join(', ')} and other details...`
+    : "Provide any additional useful details...";
+
+  // Submit Handler
+  const isSubmitDisabled = !submitTeam || !submitData.description || (detailData?.sections?.submit?.allowedArtifactTypes && !((submitData.files as unknown as string[])?.length)) || visibleSubItems.some((item: any) => !submitData[item.key]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitDisabled) return;
+    const newSub = { id: Date.now(), hackathonSlug: id, teamName: submitTeam, data: submitData, submittedAt: new Date().toISOString() };
+    const newSubs = [...submissions, newSub];
+    setSubmissions(newSubs);
+    setStorage(STORAGE_KEYS.SUBMISSIONS, newSubs);
+    alert('Project successfully submitted!');
+    setSubmitData({});
+    setSubmitTeam('');
+    setIsSubmitModalOpen(false);
+    scrollToSection('Leaderboard');
+  };
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+    
+    const allowedStr = detailData?.sections?.submit?.allowedArtifactTypes?.map((t: string) => t === 'zip' ? '.zip' : t === 'pdf' ? '.pdf' : t === 'text' ? '.txt,.md' : `.${t}`).join(',') || '';
+    const allowed = allowedStr ? allowedStr.split(',') : null;
+    
+    const validFiles = Array.from(files).filter(f => {
+      if (!allowed) return true;
+      return allowed.some((ext: string) => f.name.toLowerCase().endsWith(ext));
+    }).map(f => f.name);
+    
+    if (validFiles.length > 0) {
+      const currentFiles = (submitData.files as unknown as string[]) || [];
+      setSubmitData(prev => ({...prev, files: [...currentFiles, ...validFiles] as any}));
+    } else if (files.length > 0) {
+      alert(`Invalid file type selection. Please use: ${detailData.sections.submit?.allowedArtifactTypes?.join(', ')}`);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -318,42 +388,16 @@ const HackathonDetailPage = () => {
                 )}
               </section>
 
-              <section id="Submit" className="scroll-mt-[180px]">
+              <section id="Rules" className="scroll-mt-[180px]">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="w-12 h-1 bg-primary rounded-full" />
-                  <h2 className="text-3xl font-bebas tracking-wider text-foreground italic uppercase">Submit Project</h2>
+                  <h2 className="text-3xl font-bebas tracking-wider text-foreground italic uppercase">Rules & Guidelines</h2>
                 </div>
-                <form className="bg-support/5 rounded-3xl p-10 space-y-8 border border-support/10">
-                  <div className="col-span-2">
-                     <ul className="text-xs text-foreground/50 font-bold tracking-tight list-disc pl-4 space-y-1 mb-6">
-                       {detailData.sections.submit?.guide?.map((n: string, i: number) => <li key={i}>{n}</li>)}
-                     </ul>
-                  </div>
-
-                  {detailData.sections.submit?.submissionItems ? (
-                    detailData.sections.submit.submissionItems.map((item: any, i: number) => (
-                      <div key={i} className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">{item.title} ({item.format})</label>
-                        {item.format.includes('url') ? (
-                          <input className="w-full bg-surface border border-support/20 rounded-xl p-4 focus:ring-2 focus:ring-primary/40 transition-all outline-none text-foreground" placeholder={`Enter ${item.format}`} type="text" />
-                        ) : (
-                          <textarea className="w-full bg-surface border border-support/20 rounded-xl p-4 focus:ring-2 focus:ring-primary/40 transition-all outline-none text-foreground" rows={4} placeholder="Enter your text submission here..." />
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Archive Upload (.zip)</label>
-                      <div className="border-2 border-dashed border-support/20 rounded-3xl p-12 text-center bg-surface hover:bg-support/5 transition-colors cursor-pointer group">
-                        <UploadCloud className="w-10 h-10 text-foreground/20 mx-auto mb-4 group-hover:text-primary transition-colors" />
-                        <p className="text-foreground/50 font-bold uppercase tracking-tight text-sm">Drag and drop your file here, or <span className="text-primary">browse</span></p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex justify-end pt-4">
-                    <button type="button" className="bg-primary text-white px-12 py-4 rounded-xl font-bebas text-xl tracking-wider hover:shadow-2xl hover:shadow-primary/30 transition-all active:scale-95 cursor-pointer border-none uppercase italic">Final Submit</button>
-                  </div>
-                </form>
+                <div className="bg-support/5 rounded-3xl p-10 space-y-8 border border-support/10">
+                  <ul className="text-sm text-foreground/70 tracking-tight list-disc pl-4 space-y-4">
+                    {detailData.sections.submit?.guide?.map((n: string, i: number) => <li key={i}>{n}</li>) || <li>Please review the detailed rules document.</li>}
+                  </ul>
+                </div>
               </section>
 
               <section id="Leaderboard" className="scroll-mt-[180px] pb-32">
@@ -361,7 +405,7 @@ const HackathonDetailPage = () => {
                   <div className="w-12 h-1 bg-primary rounded-full" />
                   <h2 className="text-3xl font-bebas tracking-wider text-foreground italic uppercase">Leaderboard</h2>
                 </div>
-                {leaderboardEntries.length > 0 ? (
+                {rankedEntries.length > 0 ? (
                   <div className="bg-surface rounded-3xl overflow-hidden border border-support/10 shadow-sm">
                     <table className="w-full text-left">
                       <thead>
@@ -372,11 +416,30 @@ const HackathonDetailPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {leaderboardEntries.map((entry: any, i: number) => (
+                        {rankedEntries.map((entry: any, i: number) => (
                           <tr key={i} className="border-b border-support/5 last:border-none hover:bg-support/5 transition-colors">
                             <td className="px-6 py-4 text-xl font-bebas tracking-wider">{i + 1}</td>
-                            <td className="px-6 py-4 font-bold font-outfit">{entry.teamName}</td>
-                            <td className="px-6 py-4 text-primary font-bebas text-xl italic">{entry.score}</td>
+                            <td className="px-6 py-4 font-bold font-outfit">
+                              {entry.teamName}
+                              <span className="ml-3 inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest">
+                                Submitted
+                              </span>
+                            </td>
+                            <td className={`px-6 py-4 font-bebas text-xl italic ${entry.score === 'Pending' ? 'text-foreground/40' : 'text-primary'}`}>{entry.score}</td>
+                          </tr>
+                        ))}
+                        
+                        {/* Not submitted teams listed without ranks */}
+                        {notSubmittedTeams.map((team: any, i: number) => (
+                          <tr key={`ns-${i}`} className="border-b border-support/5 last:border-none opacity-50 bg-foreground/5 mix-blend-luminosity">
+                            <td className="px-6 py-4 text-xl font-bebas tracking-wider">-</td>
+                            <td className="px-6 py-4 font-bold font-outfit flex items-center">
+                              {team.name}
+                              <span className="ml-3 inline-block px-2 py-0.5 rounded-full bg-foreground/20 text-foreground text-[8px] font-black uppercase tracking-widest">
+                                Not Submitted
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 font-bebas text-xl italic text-foreground/40">N/A</td>
                           </tr>
                         ))}
                       </tbody>
@@ -390,14 +453,21 @@ const HackathonDetailPage = () => {
 
             {/* Right Column (Fixed Preview) */}
             <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-40 self-start z-10 hidden lg:block">
+              <button 
+                onClick={() => setIsSubmitModalOpen(true)}
+                className="w-full bg-primary text-white py-6 rounded-3xl text-3xl font-bebas tracking-widest hover:shadow-2xl hover:shadow-primary/30 transition-all uppercase cursor-pointer border-none italic active:scale-95 shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
+              >
+                <UploadCloud className="w-6 h-6" /> Submit Project
+              </button>
+
               <div className="bg-foreground p-8 rounded-3xl border border-foreground shadow-xl">
                 <h3 className="text-xl font-bebas tracking-wider mb-6 uppercase italic text-white flex justify-between items-center">
                   <span>Top 3 Standings</span>
                   <Trophy className="w-5 h-5 text-primary opacity-50" />
                 </h3>
-                {leaderboardEntries.length > 0 ? (
+                {rankedEntries.length > 0 ? (
                   <div className="space-y-3">
-                    {leaderboardEntries.slice(0, 3).map((item: any, idx: number) => (
+                    {rankedEntries.slice(0, 3).map((item: any, idx: number) => (
                       <div key={idx} className="flex items-center gap-4 bg-background/10 p-4 rounded-2xl border border-white/5">
                         <div className="text-primary font-bebas text-xl italic">#{idx + 1}</div>
                         <div className="flex-1 font-bold text-sm text-white font-outfit truncate">{item.teamName}</div>
@@ -454,6 +524,155 @@ const HackathonDetailPage = () => {
         </div>
       </motion.div>
 
+      {/* Submit Creation Modal */}
+      {isSubmitModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm p-6">
+          <div className="bg-surface w-full max-w-2xl rounded-3xl p-8 max-h-[90vh] overflow-y-auto border border-support/20 shadow-2xl relative">
+            <button 
+              onClick={() => setIsSubmitModalOpen(false)}
+              className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full hover:bg-support/10 transition-colors border-none bg-transparent cursor-pointer text-foreground/50"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-4xl font-bebas tracking-wider text-foreground italic uppercase mb-8 flex items-center gap-3">
+              <UploadCloud className="text-primary w-8 h-8" /> Final Submission
+            </h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Select Your Team *</label>
+                <select 
+                  required
+                  value={submitTeam}
+                  onChange={e => setSubmitTeam(e.target.value)}
+                  className="w-full bg-background border border-support/20 rounded-xl p-4 focus:ring-2 focus:ring-primary/40 transition-all outline-none text-foreground"
+                >
+                  <option value="" disabled>Select your team</option>
+                  {hackathonTeams.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+                </select>
+                {hackathonTeams.length === 0 && (
+                  <p className="text-xs text-primary mt-2">You don't have a team in this hackathon yet.</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Description (필수 설명) *</label>
+                <input 
+                  required
+                  value={submitData.description || ''}
+                  onChange={e => setSubmitData({...submitData, description: e.target.value})}
+                  className="w-full bg-background border border-support/20 rounded-xl p-4 focus:ring-2 focus:ring-primary/40 transition-all outline-none text-foreground font-bold" 
+                  placeholder="Summarize your project..." 
+                  type="text" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Additional Info (부가내용)</label>
+                <textarea 
+                  value={submitData.additionalInfo || ''}
+                  onChange={e => setSubmitData({...submitData, additionalInfo: e.target.value})}
+                  className="w-full bg-background border border-support/20 rounded-xl p-4 focus:ring-2 focus:ring-primary/40 transition-all outline-none text-foreground" 
+                  rows={4} 
+                  placeholder={additionalPlaceholder} 
+                />
+              </div>
+
+              {visibleSubItems.map((item: any, i: number) => (
+                <div key={i} className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">{item.title} ({item.format}) *</label>
+                  {item.format.includes('url') ? (
+                    <input 
+                      required
+                      value={submitData[item.key] || ''}
+                      onChange={e => setSubmitData({...submitData, [item.key]: e.target.value})}
+                      className="w-full bg-background border border-support/20 rounded-xl p-4 focus:ring-2 focus:ring-primary/40 transition-all outline-none text-foreground" 
+                      placeholder={`Enter ${item.format}`} 
+                      type="text" 
+                    />
+                  ) : (
+                    <textarea 
+                      required
+                      value={submitData[item.key] || ''}
+                      onChange={e => setSubmitData({...submitData, [item.key]: e.target.value})}
+                      className="w-full bg-background border border-support/20 rounded-xl p-4 focus:ring-2 focus:ring-primary/40 transition-all outline-none text-foreground" 
+                      rows={4} 
+                      placeholder="Enter your additional text submission here..." 
+                    />
+                  )}
+                </div>
+              ))}
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Artifact Upload ({detailData.sections.submit?.allowedArtifactTypes?.join(', ') || '*'}) {detailData.sections.submit?.allowedArtifactTypes ? '*' : ''}</label>
+                <input 
+                  type="file" 
+                  multiple
+                  accept={detailData.sections.submit?.allowedArtifactTypes?.map((t: string) => t === 'zip' ? '.zip' : t === 'pdf' ? '.pdf' : t === 'text' ? '.txt,.md' : `.${t}`).join(',') || undefined}
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  onChange={(e) => handleFiles(e.target.files)} 
+                />
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    handleFiles(e.dataTransfer.files);
+                  }}
+                  className={`border-2 border-dashed rounded-3xl p-10 text-center bg-background transition-colors cursor-pointer group ${isDragging ? 'border-primary bg-primary/10 shadow-inner' : ((submitData.files as unknown as string[])?.length ? 'border-primary bg-primary/5 hover:bg-support/5' : 'border-support/20 hover:bg-support/5')}`}
+                >
+                  <UploadCloud className={`w-8 h-8 mx-auto mb-3 transition-colors ${isDragging || (submitData.files as unknown as string[])?.length ? 'text-primary' : 'text-foreground/20 group-hover:text-primary'}`} />
+                  <p className="text-foreground/50 font-bold uppercase tracking-tight text-sm">
+                    {isDragging ? 'Drop your files now!' : <>Drag and drop your files here, or <span className="text-primary">browse</span></>}
+                  </p>
+                </div>
+                
+                {((submitData.files as unknown as string[]) || []).length > 0 && (
+                  <ul className="mt-4 space-y-2">
+                    {((submitData.files as unknown as string[]) || []).map((fileName, idx) => (
+                      <li key={idx} className="flex items-center justify-between bg-support/5 border border-support/10 rounded-xl px-4 py-3">
+                        <span className="text-sm font-bold text-foreground/70 truncate">{fileName}</span>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newFiles = ((submitData.files as unknown as string[]) || []).filter((_, i) => i !== idx);
+                            setSubmitData({...submitData, files: newFiles as any});
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                          }}
+                          className="text-foreground/40 hover:text-primary transition-colors cursor-pointer p-1"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              
+              <div className="flex justify-end pt-4 gap-4">
+                <button 
+                  type="button" 
+                  onClick={() => setIsSubmitModalOpen(false)}
+                  className="px-6 py-4 rounded-xl font-bebas text-lg tracking-wider text-foreground/50 hover:bg-support/10 transition-all cursor-pointer border-none uppercase"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isSubmitDisabled}
+                  className={`px-10 py-4 rounded-xl font-bebas text-xl tracking-wider transition-all active:scale-95 border-none uppercase italic shadow-lg shadow-primary/20 ${isSubmitDisabled ? 'bg-primary/50 text-white/50 cursor-not-allowed' : 'bg-primary text-white cursor-pointer hover:shadow-2xl hover:shadow-primary/30'}`}
+                >
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
