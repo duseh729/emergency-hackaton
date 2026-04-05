@@ -13,13 +13,20 @@ import {
   Clock
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import hackathonDetailRaw from '@/data/mock/public_hackathon_detail.json';
 
 const HackathonDetailPage = () => {
   const router = useRouter();
+  const { id } = useParams();
   const [activeTab, setActiveTab] = useState('Overview');
+  
+  const detailData: any = hackathonDetailRaw.slug === id 
+    ? hackathonDetailRaw 
+    : hackathonDetailRaw.extraDetails?.find(d => d.slug === id) || hackathonDetailRaw;
+
   
   const tabs = ['Overview', 'Eval', 'Schedule', 'Prize', 'Teams', 'Submit', 'Leaderboard'];
   
@@ -75,15 +82,16 @@ const HackathonDetailPage = () => {
               className="absolute inset-0 bg-cover bg-center" 
               style={{ backgroundImage: "url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1200')" }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-foreground via-foreground/60 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-r from-foreground via-foreground/60 to-transparent" />
             <div className="relative z-10 px-12 max-w-2xl">
               <span className="inline-block px-4 py-1.5 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest mb-6 shadow-lg shadow-primary/20">Open for Registration</span>
               <h1 className="text-5xl md:text-7xl font-bebas tracking-wider text-white leading-tight mb-6 italic uppercase">
-                긴급 인수인계<br/><span className="text-primary italic">해커톤</span>
+                {detailData.title.split(':').map((part: string, i: number) => (
+                  <span key={i} className={i % 2 !== 0 ? "text-primary italic" : ""}>{part} <br/></span>
+                ))}
               </h1>
               <p className="text-background/60 text-lg leading-relaxed mb-8 font-outfit">
-                (Emergency Handover Hackathon) <br/>
-                갑작스러운 인수인계 상황을 대비한 최적의 문서화와 코드 아키텍처를 설계하십시오. 지속 가능한 협업의 미래를 그리는 Radiant Architect를 찾습니다.
+                {detailData.sections.overview.summary}
               </p>
               <button className="bg-primary text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-primary/30 transition-all active:scale-95 cursor-pointer border-none uppercase tracking-widest font-bebas">
                 Join Now
@@ -120,19 +128,21 @@ const HackathonDetailPage = () => {
                   <div>
                     <h3 className="text-xl font-bebas tracking-wide mb-4 text-primary uppercase">About the Event</h3>
                     <p className="text-foreground/60 leading-relaxed text-lg font-outfit">
-                      본 해커톤은 '유지보수 가능한 코드'와 '완벽한 인수인계'를 주제로 합니다. 단순히 기능적인 완성을 넘어, 다음 개발자가 즉시 작업을 이어받을 수 있는 구조적 우수성과 문서화 품질을 경쟁합니다.
+                      {detailData.sections.overview.summary}
                     </p>
                   </div>
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="bg-background/50 p-6 rounded-2xl border border-support/10 shadow-sm">
                       <Users className="text-primary w-6 h-6 mb-3" />
                       <h4 className="font-bebas tracking-wide mb-2 uppercase text-foreground">Team Policy</h4>
-                      <p className="text-xs text-foreground/50 font-bold uppercase tracking-tight">최대 4인 팀 구성이 가능하며, 1인 개발(Solo) 참여도 적극 권장합니다. 열정 있는 개인들의 매칭 시스템을 지원합니다.</p>
+                      <p className="text-xs text-foreground/50 font-bold uppercase tracking-tight">최대 {detailData.sections.overview.teamPolicy?.maxTeamSize}인 팀 구성이 가능하며, {detailData.sections.overview.teamPolicy?.allowSolo ? "1인 개발(Solo) 참여도 적극 권장합니다." : ""}</p>
                     </div>
                     <div className="bg-background/50 p-6 rounded-2xl border border-support/10 shadow-sm">
                       <Info className="text-primary w-6 h-6 mb-3" />
                       <h4 className="font-bebas tracking-wide mb-2 uppercase text-foreground">Important Notices</h4>
-                      <p className="text-xs text-foreground/50 font-bold uppercase tracking-tight">모든 코드는 오픈 소스로 공개되어야 하며, 인수인계 문서(README.md)는 평가의 40% 비중을 차지합니다.</p>
+                      <ul className="text-xs text-foreground/50 font-bold tracking-tight list-disc pl-4 space-y-1">
+                        {detailData.sections.info?.notice?.map((n: string, i: number) => <li key={i}>{n}</li>)}
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -144,20 +154,20 @@ const HackathonDetailPage = () => {
                   <h2 className="text-3xl font-bebas tracking-wider text-foreground italic uppercase">Schedule</h2>
                 </div>
                 <div className="relative pl-8 border-l-2 border-support/20 ml-4 space-y-12 py-4">
-                  {[
-                    { title: 'Application', date: 'Oct 10 - Oct 20', desc: '아이디어 제안서 및 팀 빌딩 기간. 프로젝트의 방향성을 확정하는 가장 중요한 시기입니다.', color: 'bg-primary' },
-                    { title: 'Development', date: 'Oct 21 - Oct 25', desc: '핵심 기능 구현 및 문서화 진행. 정기적인 코드 리뷰와 인수인계 준비 세션이 제공됩니다.', color: 'bg-support' },
-                    { title: 'Final Demo', date: 'Oct 30', desc: '온라인 데모 데이. 프로젝트의 구조와 문서화 전략을 중심으로 최종 프레젠테이션을 진행합니다.', color: 'bg-foreground/20' }
-                  ].map((item, idx) => (
-                    <div key={idx} className="relative">
-                      <div className={`absolute -left-[41px] top-1 w-5 h-5 rounded-full ${item.color} ring-4 ring-background`} />
-                      <div>
-                        <h4 className="text-xl font-bebas tracking-wide uppercase text-foreground">{item.title}</h4>
-                        <span className="text-primary font-black text-xs uppercase tracking-widest">{item.date}</span>
-                        <p className="mt-2 text-foreground/60 text-sm font-outfit">{item.desc}</p>
+                  {detailData.sections.schedule?.milestones?.map((item: any, idx: number) => {
+                    const d = new Date(item.at);
+                    const isPassed = d.getTime() < Date.now();
+                    const color = idx === 0 ? 'bg-primary' : isPassed ? 'bg-foreground/20' : 'bg-support';
+                    return (
+                      <div key={idx} className="relative">
+                        <div className={`absolute -left-[41px] top-1 w-5 h-5 rounded-full ${color} ring-4 ring-background`} />
+                        <div>
+                          <h4 className="text-xl font-bebas tracking-wide uppercase text-foreground">{item.name}</h4>
+                          <span className="text-primary font-black text-xs uppercase tracking-widest">{d.toLocaleString()}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
 
@@ -214,24 +224,25 @@ const HackathonDetailPage = () => {
 
               <div className="space-y-4">
                 <h3 className="text-xl font-bebas tracking-wide mb-4 px-2 uppercase text-foreground">Prize Pool</h3>
-                <div className="relative group overflow-hidden rounded-3xl bg-primary p-6 text-white shadow-xl shadow-primary/20">
-                  <Trophy className="absolute -right-4 -bottom-4 w-32 h-32 opacity-10" />
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-80">1st Place</span>
-                  <div className="text-3xl font-bebas tracking-wider mt-1 italic uppercase">5,000,000 KRW</div>
-                  <p className="text-[10px] mt-2 font-bold uppercase tracking-tight opacity-70">Golden Architect Trophy + Mentoring</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-foreground rounded-3xl p-5 text-white shadow-md border border-foreground">
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">2nd Place</span>
-                    <div className="text-xl font-bebas tracking-wider mt-1 italic">3,000,000</div>
-                    <p className="text-[10px] mt-1 font-bold uppercase tracking-tight opacity-50">Silver Design Award</p>
-                  </div>
-                  <div className="bg-support/20 rounded-3xl p-5 text-foreground shadow-md border border-support/10">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">3rd Place</span>
-                    <div className="text-xl font-bebas tracking-wider mt-1 text-primary italic">1,000,000</div>
-                    <p className="text-[10px] mt-1 text-foreground/40 font-bold uppercase tracking-tight">Bronze Recognition</p>
-                  </div>
-                </div>
+                {detailData.sections.prize?.items ? (
+                  <>
+                    <div className="relative group overflow-hidden rounded-3xl bg-primary p-6 text-white shadow-xl shadow-primary/20">
+                      <Trophy className="absolute -right-4 -bottom-4 w-32 h-32 opacity-10" />
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{detailData.sections.prize.items[0]?.place} Place</span>
+                      <div className="text-3xl font-bebas tracking-wider mt-1 italic uppercase">{detailData.sections.prize.items[0]?.amountKRW?.toLocaleString()} KRW</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      {detailData.sections.prize.items.slice(1).map((prize: any, idx: number) => (
+                        <div key={idx} className={`${idx === 0 ? 'bg-foreground text-white' : 'bg-support/20 text-foreground'} rounded-3xl p-5 shadow-md`}>
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${idx === 0 ? 'opacity-60' : 'text-primary'}`}>{prize.place} Place</span>
+                          <div className={`text-xl font-bebas tracking-wider mt-1 italic ${idx === 0 ? '' : 'text-primary'}`}>{prize.amountKRW?.toLocaleString()} KRW</div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-support/10 rounded-3xl p-6 text-center text-foreground/40 font-bold uppercase tracking-tight text-xs">No prize pool specified</div>
+                )}
               </div>
 
               <div className="bg-foreground p-8 rounded-3xl border border-foreground shadow-xl">

@@ -7,65 +7,28 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HandoverHUD from '@/components/HandoverHUD';
+import hackathonsData from '@/data/mock/public_hackathons.json';
 
 const HackathonListPage = () => {
   const router = useRouter();
   const [filter, setFilter] = useState('all');
   
-  const hackathons = [
-    {
-      id: 1,
-      status: 'Active',
-      title: '긴급 인수인계 해커톤',
-      date: 'Oct 12 - Oct 14, 2026',
-      participants: 120,
-      tags: ['#AI', '#Python'],
-      image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-      id: 2,
-      status: 'Upcoming',
-      title: 'Decentralize Everything',
-      date: 'Nov 05 - Nov 07, 2026',
-      participants: 45,
-      tags: ['#Web3', '#Solidity'],
-      image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-      id: 3,
-      status: 'Active',
-      title: 'Interface Alchemy',
-      date: 'Oct 20 - Oct 22, 2026',
-      participants: 88,
-      tags: ['#UI/UX', '#Design'],
-      image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-      id: 4,
-      status: 'Upcoming',
-      title: 'React Revolution',
-      date: 'Dec 01 - Dec 03, 2026',
-      participants: 212,
-      tags: ['#React', '#Frontend'],
-      image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-      id: 5,
-      status: 'Completed',
-      title: 'Hardware Horizon',
-      date: 'Sep 10 - Sep 12, 2026',
-      participants: 74,
-      tags: ['#IoT', '#Hardware'],
-      image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800'
-    }
-  ];
+  const hackathons = hackathonsData.map((h, i) => ({
+    id: h.slug,
+    status: h.status === 'ongoing' ? 'Active' : h.status === 'upcoming' ? 'Upcoming' : 'Completed',
+    title: h.title,
+    date: `${new Date(h.period.submissionDeadlineAt).toLocaleDateString()} - ${new Date(h.period.endAt).toLocaleDateString()}`,
+    participants: 40 + (i * 15),
+    tags: h.tags,
+    image: h.thumbnailUrl || 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800'
+  }));
 
   const filteredHackathons = filter === 'all' ? hackathons : hackathons.filter(h => h.status.toLowerCase() === filter);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-grow pt-24">
+      <main className="grow pt-24">
         <div className="max-w-7xl mx-auto px-8">
           <section className="pt-20 pb-16 relative overflow-hidden">
             <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
@@ -146,7 +109,7 @@ const HackathonListPage = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="p-8 flex flex-col flex-grow">
+                    <div className="p-8 flex flex-col grow">
                       <h3 className="font-outfit text-2xl font-bold text-foreground mb-2">{h.title}</h3>
                       <p className="text-foreground/50 text-xs font-bold uppercase tracking-tighter mb-6 flex items-center gap-2">
                         <Calendar className="w-3 h-3 text-primary" /> {h.date}
@@ -155,7 +118,7 @@ const HackathonListPage = () => {
                         <div className="flex -space-x-2">
                           {[1, 2, 3].map(i => (
                             <div key={i} className="w-8 h-8 rounded-full border-2 border-surface bg-support/10 overflow-hidden">
-                              <img src={`https://i.pravatar.cc/100?u=${h.id + i}`} alt="User" />
+                              <img src={`https://i.pravatar.cc/100?u=${h.id}${i}`} alt="User" />
                             </div>
                           ))}
                           <div className="w-8 h-8 rounded-full border-2 border-surface bg-support/5 flex items-center justify-center text-[10px] font-bold text-primary">

@@ -16,64 +16,33 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TeamCard from '@/components/TeamCard';
 import HandoverHUD from '@/components/HandoverHUD';
+import teamsData from '@/data/mock/public_teams.json';
+import hackathonsData from '@/data/mock/public_hackathons.json';
 
 const CampPage = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [roleFilter, setRoleFilter] = useState('All');
 
-  const teams = [
-    {
-      id: 1,
-      name: 'Team Code-Red',
-      description: 'Building a decentralized emergency response system using React and Solidity. Looking for a lead designer to polish our interface.',
-      hackathon: '긴급 인수인계 해커톤',
-      currentMembers: 3,
-      maxMembers: 4,
-      icon: <Terminal className="w-8 h-8" />,
-      roles: [
-        { name: 'Designer', icon: <Palette className="w-3 h-3" />, color: 'bg-primary/10 text-primary' },
-        { name: 'Frontend', icon: <Layout className="w-3 h-3" />, color: 'bg-support/20 text-foreground/80' }
-      ],
-      members: [
-        { avatar: 'https://i.pravatar.cc/100?u=1' },
-        { avatar: 'https://i.pravatar.cc/100?u=2' },
-        { avatar: 'https://i.pravatar.cc/100?u=3' }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Radiant Docs',
-      description: 'Focusing on the ultimate documentation engine for architectural handovers. Need a backend expert for our indexing system.',
-      hackathon: 'Interface Alchemy',
-      currentMembers: 2,
-      maxMembers: 4,
-      icon: <Code className="w-8 h-8" />,
-      roles: [
-        { name: 'Backend', icon: <Terminal className="w-3 h-3" />, color: 'bg-primary/10 text-primary' },
-        { name: 'PM', icon: <Users className="w-3 h-3" />, color: 'bg-support/20 text-foreground/80' }
-      ],
-      members: [
-        { avatar: 'https://i.pravatar.cc/100?u=4' },
-        { avatar: 'https://i.pravatar.cc/100?u=5' }
-      ]
-    },
-    {
-      id: 3,
-      name: 'Handover-Hero',
-      description: 'Creating a seamless transition tool for developers. We need a frontend wizard to build our interactive dashboard.',
-      hackathon: '긴급 인수인계 해커톤',
-      currentMembers: 1,
-      maxMembers: 3,
-      icon: <Layout className="w-8 h-8" />,
-      roles: [
-        { name: 'Frontend', icon: <Layout className="w-3 h-3" />, color: 'bg-support/20 text-foreground/80' },
-        { name: 'Designer', icon: <Palette className="w-3 h-3" />, color: 'bg-primary/10 text-primary' }
-      ],
-      members: [
-        { avatar: 'https://i.pravatar.cc/100?u=6' }
-      ]
-    }
-  ];
+  const teams = teamsData.map((t, idx) => {
+    const hackathon = hackathonsData.find(h => h.slug === t.hackathonSlug);
+    return {
+      id: idx + 1,
+      name: t.name,
+      description: t.intro,
+      hackathon: hackathon ? hackathon.title : t.hackathonSlug,
+      currentMembers: t.memberCount,
+      maxMembers: 5,
+      icon: <Users className="w-8 h-8" />,
+      roles: t.lookingFor.map(role => ({
+        name: role,
+        icon: <Code className="w-3 h-3" />,
+        color: 'bg-primary/10 text-primary'
+      })),
+      members: Array.from({ length: t.memberCount }).map((_, i) => ({
+        avatar: `https://i.pravatar.cc/100?u=team${idx}${i}`
+      }))
+    };
+  });
 
   const filteredTeams = teams.filter(team => {
     const hackathonMatch = activeFilter === 'All' || team.hackathon === activeFilter;
@@ -84,7 +53,7 @@ const CampPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-grow pt-24">
+      <main className="grow pt-24">
         <section className="px-6 py-20 bg-support/5 relative overflow-hidden border-b border-support/10">
           <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 skew-x-12 translate-x-20" />
           <div className="max-w-7xl mx-auto relative z-10">
@@ -125,7 +94,7 @@ const CampPage = () => {
                       <Filter className="w-3 h-3" /> By Hackathon
                     </p>
                     <div className="flex flex-col gap-2">
-                      {['All', '긴급 인수인계 해커톤', 'Interface Alchemy', 'Decentralize Everything'].map(f => (
+                      {['All', ...Array.from(new Set(teams.map(t => t.hackathon)))].map(f => (
                         <button 
                           key={f}
                           onClick={() => setActiveFilter(f)}
@@ -144,7 +113,7 @@ const CampPage = () => {
                       <Users className="w-3 h-3" /> Looking For
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {['All', 'Frontend', 'Backend', 'Designer', 'PM'].map(r => (
+                      {['All', ...Array.from(new Set(teams.flatMap(t => t.roles.map((r: any) => r.name))))].map(r => (
                         <button 
                           key={r}
                           onClick={() => setRoleFilter(r)}

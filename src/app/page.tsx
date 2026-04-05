@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import ActionCard from '@/components/ActionCard';
 import ChallengeCard from '@/components/ChallengeCard';
 import HandoverHUD from '@/components/HandoverHUD';
+import hackathonsData from '@/data/mock/public_hackathons.json';
 
 const HomeHero = () => (
   <section className="relative px-6 py-20 md:py-32 flex flex-col items-center text-center overflow-hidden">
@@ -48,7 +49,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
-      <main className="flex-grow pt-24">
+      <main className="grow pt-24">
         <HomeHero />
         
         <section className="px-6 pb-24 max-w-7xl mx-auto">
@@ -93,25 +94,19 @@ export default function Home() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <ChallengeCard 
-                status="Active"
-                endsIn="Ends in 12h 45m"
-                title="긴급 인수인계 해커톤"
-                description="Optimizing decentralized data transfers under extreme network latency conditions."
-                teams="42 Teams Joined"
-                image="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800"
-                onClick={() => router.push('/hackathons/1')}
-              />
-              <ChallengeCard 
-                status="Upcoming"
-                endsIn="Starts Dec 12"
-                title="Radiant Architecture V2"
-                description="Reimagining urban spaces with modular digital twins for emergency response teams."
-                teams="18 Teams Registered"
-                image="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800"
-                isUpcoming
-                onClick={() => router.push('/hackathons/2')}
-              />
+              {hackathonsData.slice(0, 2).map((h) => (
+                <ChallengeCard 
+                  key={h.slug}
+                  status={h.status === 'ongoing' ? 'Active' : h.status === 'upcoming' ? 'Upcoming' : 'Completed'}
+                  endsIn={`Ends: ${new Date(h.period.endAt).toLocaleDateString()}`}
+                  title={h.title}
+                  description={`Tags: ${h.tags.join(', ')}`}
+                  teams="Join to see teams"
+                  image={h.thumbnailUrl || "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800"}
+                  isUpcoming={h.status === 'upcoming'}
+                  onClick={() => router.push(`/hackathons/${h.slug}`)}
+                />
+              ))}
             </div>
           </div>
         </section>

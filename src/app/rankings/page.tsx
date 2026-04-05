@@ -18,78 +18,34 @@ import { motion, AnimatePresence } from 'motion/react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HandoverHUD from '@/components/HandoverHUD';
+import leaderboardData from '@/data/mock/public_leaderboard.json';
 
 const RankingsPage = () => {
   const [activeTab, setActiveTab] = useState('All Time');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const rankings = [
-    {
-      rank: 1,
-      team: 'Team Code-Red',
-      subtitle: 'Architecture Mastery',
-      points: 28450,
-      progress: 98,
-      change: 'up',
-      isNew: false,
-      avatar: 'https://i.pravatar.cc/100?u=1',
-      hackathons: 12,
-      winRate: '85%'
-    },
-    {
-      rank: 2,
-      team: 'Radiant Docs',
-      subtitle: 'Clean Code Kings',
-      points: 26120,
-      progress: 92,
-      change: 'down',
-      isNew: false,
-      avatar: 'https://i.pravatar.cc/100?u=2',
-      hackathons: 15,
-      winRate: '72%'
-    },
-    {
-      rank: 3,
-      team: 'Handover-Hero',
-      subtitle: 'UX Specialists',
-      points: 24890,
-      progress: 88,
-      change: 'up',
-      isNew: true,
-      avatar: 'https://i.pravatar.cc/100?u=3',
-      hackathons: 8,
-      winRate: '90%'
-    },
-    {
-      rank: 4,
-      team: 'Pixel Architects',
-      subtitle: 'Visual Excellence',
-      points: 22100,
-      progress: 78,
-      change: 'none',
-      isNew: false,
-      avatar: 'https://i.pravatar.cc/100?u=4',
-      hackathons: 20,
-      winRate: '65%'
-    },
-    {
-      rank: 5,
-      team: 'Logic Layers',
-      subtitle: 'Backend Wizards',
-      points: 21450,
-      progress: 75,
-      change: 'up',
-      isNew: false,
-      avatar: 'https://i.pravatar.cc/100?u=5',
-      hackathons: 14,
-      winRate: '68%'
-    }
-  ];
+  const allEntries = [
+    ...leaderboardData.entries.map(e => ({ ...e, slug: leaderboardData.hackathonSlug })),
+    ...(leaderboardData.extraLeaderboards || []).flatMap(lb => lb.entries.map(e => ({ ...e, slug: lb.hackathonSlug })))
+  ].sort((a, b) => b.score - a.score);
+
+  const rankings = allEntries.map((e, i) => ({
+    rank: i + 1,
+    team: e.teamName,
+    subtitle: e.slug === 'daker-handover-2026-03' ? 'Handover Specialist' : 'Architecture Mastery',
+    points: e.score > 2 ? e.score * 100 : e.score * 10000, 
+    progress: Math.min(100, Math.floor(e.score > 1 ? e.score : e.score * 100)),
+    change: ['up', 'down', 'none'][i % 3],
+    isNew: i === 2,
+    avatar: `https://i.pravatar.cc/100?u=rank${i}`,
+    hackathons: (i % 5) + 1,
+    winRate: `${50 + (i * 5)}%`
+  }));
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-grow pt-24">
+      <main className="grow pt-24">
         {/* Hall of Fame Hero */}
         <section className="relative px-6 py-20 md:py-32 overflow-hidden bg-foreground text-background">
           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
@@ -134,7 +90,7 @@ const RankingsPage = () => {
               >
                 <div className="absolute inset-0 bg-primary/20 rounded-[3rem] blur-2xl group-hover:bg-primary/30 transition-all"></div>
                 <div className="relative h-full bg-foreground/90 rounded-[3rem] border border-white/10 p-8 flex flex-col items-center justify-center text-center overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent"></div>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-primary to-transparent"></div>
                   <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mb-6 relative border border-primary/30">
                     <Crown className="w-12 h-12 text-primary" />
                     <div className="absolute -top-2 -right-2 bg-white text-foreground w-8 h-8 rounded-full flex items-center justify-center font-black text-sm italic shadow-lg">#1</div>
