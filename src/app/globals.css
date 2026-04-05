@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;700&family=Bebas+Neue&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -20,9 +19,9 @@
   --color-border: var(--border);
   --color-ring: var(--ring);
 
-  --font-sans: "Inter", "Geist Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-outfit: "Outfit", sans-serif;
-  --font-bebas: "Bebas Neue", sans-serif;
+  --font-sans: var(--font-wanted-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-outfit: var(--font-wanted-sans), sans-serif;
+  --font-bebas: var(--font-wanted-sans), sans-serif;
 }
 
 @layer base {
