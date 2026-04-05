@@ -8,45 +8,45 @@
 
 ### 1. 프로젝트 기초 설정 (Day 1)
 
-- [ ] Next.js (App Router) 프로젝트 초기화
-- [ ] Vanilla CSS 디자인 시스템 구축 (Color Palette, Typography, UI Tokens)
-- [ ] 글로벌 레이아웃: 상단 네비게이션 바 구현 (`/`, `/hackathons`, `/camp`, `/rankings` 항목 고정)
-- [ ] LocalStorage 데이터 매니저 유틸리티 작성 (`hackathons`, `teams`, `submissions`, `leaderboards` 키 관리)
-- [ ] 앱 최초 실행 시 `예시자료/*.json`을 localStorage에 시딩하는 로직 구현
-- [ ] 공통 UI 상태 컴포넌트 3종 구현: 로딩 스피너 / 데이터 없음(Empty State) / 에러 메시지
+- [x] Next.js (App Router) 프로젝트 초기화
+- [x] Vanilla CSS 디자인 시스템 구축 (Color Palette, Typography, UI Tokens) (Tailwind v4 기반 적용)
+- [x] 글로벌 레이아웃: 상단 네비게이션 바 구현 (`/`, `/hackathons`, `/camp`, `/rankings` 항목 고정)
+- [x] LocalStorage 데이터 매니저 유틸리티 작성 (`hackathons`, `teams`, `submissions`, `leaderboards` 키 관리)
+- [x] 앱 최초 실행 시 `예시자료/*.json`을 localStorage에 시딩하는 로직 구현
+- [x] 공통 UI 상태 컴포넌트 3종 구현: 로딩 스피너 / 데이터 없음(Empty State) / 에러 메시지
 
 ### 2. 메인 페이지 (/) (Day 1)
 
-- [ ] 서비스 소개 섹션 구현
-- [ ] 3대 핵심 진입 카드 UI 및 라우팅 구현
-  - [ ] "해커톤 보기" → `/hackathons`
-  - [ ] "팀 찾기" → `/camp`
-  - [ ] "랭킹 보기" → `/rankings`
+- [x] 서비스 소개 섹션 구현
+- [x] 3대 핵심 진입 카드 UI 및 라우팅 구현
+  - [x] "해커톤 보기" → `/hackathons`
+  - [x] "팀 찾기" → `/camp`
+  - [x] "랭킹 보기" → `/rankings`
 - [ ] [예외] localStorage 초기화 오류 시 에러 메시지 + 새로고침 안내 표시
 
 ### 3. 해커톤 목록 페이지 (/hackathons) (Day 2)
 
-- [ ] 해커톤 카드 UI 컴포넌트 개발 (제목, 상태 배지, 태그, 시작일, 종료일, 참가자 수 포함)
-- [ ] LocalStorage `hackathons` 읽어 카드 목록 렌더링
-- [ ] 카드 클릭 시 `/hackathons/:slug` 이동 연결
+- [x] 해커톤 카드 UI 컴포넌트 개발 (제목, 상태 배지, 태그, 시작일, 종료일, 참가자 수 포함)
+- [x] LocalStorage `hackathons` 읽어 카드 목록 렌더링 (JSON 직접 참조 방식으로 우선 적용)
+- [x] 카드 클릭 시 `/hackathons/:slug` 이동 연결
 - [ ] [예외] 데이터 로딩 지연 시 로딩 스피너 표시
 
 ### 4. 해커톤 상세 페이지 (/hackathons/:slug) (Day 2)
 
-- [ ] 탭 시스템 (7개 섹션) UI 구조 설계 및 탭 전환 구현
-- [ ] [예외] 해당 slug 해커톤 미존재 시 안내 메시지 + "목록으로 돌아가기" 버튼 표시
-- [ ] **[탭 1] Overview/Info**: 대회 한줄 요약, 팀 정책(솔로 허용 여부·최대 인원), 공지사항, 규정·FAQ 링크 표시
-- [ ] **[탭 2] Eval**: 평가 지표명, 평가 설명, 점수 가중치(참가자 30% / 심사위원 70%) 표시
-- [ ] **[탭 3] Schedule**: 마일스톤 타임라인 목록 표시 (이름·날짜·시간, 시간대 표시)
-- [ ] **[탭 4] Prize**: 순위별 상금 목록 표시 (1st·2nd·3rd 등)
-- [ ] **[탭 5] Teams**: 해당 해커톤 팀 카드 목록 (팀명·소개·모집 포지션·연락처) 렌더링
-- [ ] **[탭 6] Submit**: 제출 탭 (→ 아래 #6 참고)
-- [ ] **[탭 7] Leaderboard**: 리더보드 탭 (→ 아래 #6 참고)
+- [x] 탭 시스템 (7개 섹션) UI 구조 설계 및 탭 전환 구현
+- [x] [예외] 해당 slug 해커톤 미존재 시 안내 메시지 + "목록으로 돌아가기" 버튼 표시
+- [x] **[탭 1] Overview/Info**: 대회 한줄 요약, 팀 정책(솔로 허용 여부·최대 인원), 공지사항, 규정·FAQ 링크 표시
+- [x] **[탭 2] Eval**: 평가 지표명, 평가 설명, 점수 가중치(참가자 30% / 심사위원 70%) 표시
+- [x] **[탭 3] Schedule**: 마일스톤 타임라인 목록 표시 (이름·날짜·시간, 시간대 표시)
+- [x] **[탭 4] Prize**: 순위별 상금 목록 표시 (1st·2nd·3rd 등)
+- [x] **[탭 5] Teams**: 해당 해커톤 팀 카드 목록 (팀명·소개·모집 포지션·연락처) 렌더링
+- [x] **[탭 6] Submit**: 제출 탭 (→ 아래 #6 참고)
+- [x] **[탭 7] Leaderboard**: 리더보드 탭 (→ 아래 #6 참고)
 
 ### 5. 팀원 모집 (/camp) 및 연동 (Day 3)
 
-- [ ] `/camp` 전체 팀 목록 UI 구현 (팀명·모집 상태 배지·소개·포지션 태그·연락하기 버튼)
-- [ ] `/camp?hackathon=slug` 쿼리 파라미터로 특정 해커톤 팀만 필터링
+- [x] `/camp` 전체 팀 목록 UI 구현 (팀명·모집 상태 배지·소개·포지션 태그·연락하기 버튼)
+- [x] `/camp?hackathon=slug` 쿼리 파라미터로 특정 해커톤 팀만 필터링 (필터 UI 연동)
 - [ ] 해커톤 상세 **Teams** 탭: "이 해커톤 팀 구성" 버튼 → `/camp?hackathon=slug` 이동 구현
 - [ ] [예외] 등록된 팀 없을 시 "아직 팀이 없습니다. 팀을 만들어보세요!" + 생성 버튼 표시
 - [ ] 팀 모집글 생성 폼 (Modal 또는 Page) 개발 및 LocalStorage `teams` 저장 로직
@@ -71,7 +71,7 @@
 - [ ] **Leaderboard 탭**: `leaderboards[slug]` + 제출 데이터 join하여 순위 테이블 렌더링 (rank·팀명·score·제출일)
 - [ ] [예외] 미제출 팀: "미제출" 배지 표시 및 순위 제외
 - [ ] 제출 완료 시 리더보드 상태 자동 갱신 ("미제출" → "제출 완료")
-- [ ] **Global Rankings (/rankings)**: 전체 `leaderboards`에서 팀별 points 합산, rank·닉네임(팀명)·points 테이블 표시
+- [x] **Global Rankings (/rankings)**: 전체 `leaderboards`에서 팀별 points 합산, rank·닉네임(팀명)·points 테이블 표시
 
 ---
 
@@ -79,9 +79,9 @@
 
 ### 7. 필터 및 검색 기능 고도화 (Day 5)
 
-- [ ] 해커톤 목록: 진행중/종료/예정 상태 필터 구현
-- [ ] 해커톤 목록: 기술 태그 기반 필터링 구현
-- [ ] 글로벌 랭킹: 최근 7일/30일/전체 기간 필터 구현
+- [x] 해커톤 목록: 진행중/종료/예정 상태 필터 구현
+- [x] 해커톤 목록: 기술 태그 기반 필터링 구현
+- [x] 글로벌 랭킹: 최근 7일/30일/전체 기간 필터 구현
 
 ### 8. 팀 인터랙션 기능 강화 (Day 5 ~ 6)
 
