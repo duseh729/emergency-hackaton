@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;700&family=Bebas+Neue&display=swap');
+@import "tailwindcss";
+
+:root {
+  --background: #FFF5F2; /* Soft Peach */
+  --foreground: #2D3436; /* Dark Charcoal */
+  --primary: #FF6347;    /* Tomato */
+  --support: #FAB1A0;    /* Coral */
+  --surface: #FFFFFF;
+  --border: #FAB1A0;     /* Default border (using coral) */
+  --ring: #FF6347;       /* Default ring (using tomato) */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-support: var(--support);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --font-sans: "Inter", "Geist Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-outfit: "Outfit", sans-serif;
+  --font-bebas: "Bebas Neue", sans-serif;
+}
+
+@layer base {
+  * {
+    /* v4 specific: uses variable directly or defined utility */
+    @apply border-border/20 outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+.hero-title {
+  @apply font-bebas text-6xl md:text-8xl tracking-wider text-primary;
+}
+
+.card-peach {
+  @apply bg-surface border border-support/20 shadow-sm rounded-2xl p-6;
+}
