@@ -47,15 +47,15 @@
 
 - [x] `/camp` 전체 팀 목록 UI 구현 (팀명·모집 상태 배지·소개·포지션 태그·연락하기 버튼)
 - [x] `/camp?hackathon=slug` 쿼리 파라미터로 특정 해커톤 팀만 필터링 (필터 UI 연동)
-- [ ] 해커톤 상세 **Teams** 탭: "이 해커톤 팀 구성" 버튼 → `/camp?hackathon=slug` 이동 구현
-- [ ] [예외] 등록된 팀 없을 시 "아직 팀이 없습니다. 팀을 만들어보세요!" + 생성 버튼 표시
-- [ ] 팀 모집글 생성 폼 (Modal 또는 Page) 개발 및 LocalStorage `teams` 저장 로직
-  - [ ] 팀명(`name`) — 필수
-  - [ ] 소개(`intro`) — 필수
-  - [ ] 모집 중 여부(`isOpen`) — 필수
-  - [ ] 모집 포지션(`lookingFor[]`) — Frontend/Backend/Designer 등 복수 선택, 선택
-  - [ ] 연락 링크(`contact.url`) — 오픈카톡 또는 구글폼 링크, 선택
-- [ ] 팀 카드 생성 즉시 목록에 반영 (모집 중 배지 포함)
+- [x] 해커톤 상세 **Teams** 탭: "이 해커톤 팀 구성" 버튼 → `/camp?hackathon=slug` 이동 구현
+- [x] [예외] 등록된 팀 없을 시 "아직 팀이 없습니다. 팀을 만들어보세요!" + 생성 버튼 표시
+- [x] 팀 모집글 생성 폼 (Modal 또는 Page) 개발 및 LocalStorage `teams` 저장 로직
+  - [x] 팀명(`name`) — 필수
+  - [x] 소개(`intro`) — 필수
+  - [x] 모집 중 여부(`isOpen`) — 필수
+  - [x] 모집 포지션(`lookingFor[]`) — Frontend/Backend/Designer 등 복수 선택, 선택
+  - [x] 연락 링크(`contact.url`) — 오픈카톡 또는 구글폼 링크, 선택
+- [x] 팀 카드 생성 즉시 목록에 반영 (모집 중 배지 포함)
 
 ### 6. 제출 및 리더보드 (Day 4)
 

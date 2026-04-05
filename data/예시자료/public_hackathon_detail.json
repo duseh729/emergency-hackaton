@@ -195,6 +195,86 @@
           "note": "아이디어 해커톤의 점수(score)는 투표 결과를 기반으로 표시됩니다."
         }
       }
+    },
+    {
+      "slug": "monthly-vibe-coding-2026-02",
+      "title": "월간 해커톤 : 바이브 코딩 개선 AI 아이디어 공모전 (2026.02)",
+      "sections": {
+        "overview": {
+          "summary": "AI를 활용해 바이브 코딩 환경을 혁신할 수 있는 다양한 아이디어를 제안합니다.",
+          "teamPolicy": {
+            "allowSolo": true,
+            "maxTeamSize": 1
+          }
+        },
+        "info": {
+          "notice": [
+            "1인 공모전입니다.",
+            "아이디어의 참신함과 실현 가능성을 중점으로 평가합니다."
+          ],
+          "links": {
+            "rules": "https://example.com/public/rules/vibe202602",
+            "faq": "https://example.com/public/faq/vibe202602"
+          }
+        },
+        "eval": {
+          "metricName": "IdeaScore",
+          "description": "창의성 및 구체성에 대한 평가 점수",
+          "scoreDisplay": {
+            "label": "아이디어 점수",
+            "breakdown": [
+              {
+                "key": "creative",
+                "label": "창의성",
+                "weightPercent": 50
+              },
+              {
+                "key": "logical",
+                "label": "논리성",
+                "weightPercent": 50
+              }
+            ]
+          }
+        },
+        "schedule": {
+          "timezone": "Asia/Seoul",
+          "milestones": [
+            {
+              "name": "공모 시작",
+              "at": "2026-02-01T09:00:00+09:00"
+            },
+            {
+              "name": "접수 마감",
+              "at": "2026-03-03T10:00:00+09:00"
+            }
+          ]
+        },
+        "prize": {
+          "items": [
+            {
+              "place": "그랑프리",
+              "amountKRW": 1000000
+            }
+          ]
+        },
+        "teams": {
+          "campEnabled": false
+        },
+        "submit": {
+          "allowedArtifactTypes": ["text"],
+          "guide": ["아이디어 요약문을 텍스트로 제출하세요."],
+          "submissionItems": [
+            {
+              "key": "idea",
+              "title": "아이디어 요약",
+              "format": "text"
+            }
+          ]
+        },
+        "leaderboard": {
+          "note": "투표 종료 후 최종 순위가 공개됩니다."
+        }
+      }
     }
   ]
 }

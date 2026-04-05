@@ -11,6 +11,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TeamCard from '@/components/TeamCard';
 import EmptyState from '@/components/ui/EmptyState';
+import { getStorage, STORAGE_KEYS } from '@/lib/storage';
 
 import mockHackathonDetails from '@/data/mock/public_hackathon_detail.json';
 import mockTeams from '@/data/mock/public_teams.json';
@@ -32,6 +33,11 @@ const HackathonDetailPage = () => {
   const router = useRouter();
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('Overview');
+  const [rawTeams, setRawTeams] = useState<any[]>([]);
+  
+  useEffect(() => {
+    setRawTeams(getStorage(STORAGE_KEYS.TEAMS, mockTeams));
+  }, []);
   
   // Find specific detail data
   const detailData: any = mockHackathonDetails.slug === id 
@@ -97,7 +103,7 @@ const HackathonDetailPage = () => {
   }
 
   // Filter associated teams
-  const hackathonTeams = mockTeams.filter(t => t.hackathonSlug === id).map((t, idx) => ({
+  const hackathonTeams = rawTeams.filter(t => t.hackathonSlug === id).map((t, idx) => ({
     id: idx + 1,
     name: t.name,
     description: t.intro,
@@ -105,12 +111,12 @@ const HackathonDetailPage = () => {
     currentMembers: t.memberCount,
     maxMembers: 5,
     icon: <Users className="w-8 h-8" />,
-    roles: t.lookingFor.map(role => ({
+    roles: (t.lookingFor || []).map((role: string) => ({
       name: role,
       icon: <Users className="w-3 h-3" />,
       color: 'bg-primary/10 text-primary'
     })),
-    members: Array.from({ length: t.memberCount }).map((_, i) => ({
+    members: Array.from({ length: t.memberCount || 1 }).map((_, i) => ({
       avatar: `https://i.pravatar.cc/100?u=team${t.teamCode}${i}`
     }))
   }));
@@ -291,16 +297,24 @@ const HackathonDetailPage = () => {
               </section>
 
               <section id="Teams" className="scroll-mt-[180px]">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-1 bg-primary rounded-full" />
-                  <h2 className="text-3xl font-bebas tracking-wider text-foreground italic uppercase">Find A Team</h2>
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-1 bg-primary rounded-full" />
+                    <h2 className="text-3xl font-bebas tracking-wider text-foreground italic uppercase">Find A Team</h2>
+                  </div>
+                  <button 
+                    onClick={() => router.push(`/camp?hackathon=${detailData.slug}&create=true`)}
+                    className="bg-primary text-white border-primary px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-lg shadow-primary/20 transition-all cursor-pointer border"
+                  >
+                    + Create Team
+                  </button>
                 </div>
                 {hackathonTeams.length > 0 ? (
                   <div className="grid md:grid-cols-2 gap-6">
                     {hackathonTeams.map(t => <TeamCard key={t.id} team={t} />)}
                   </div>
                 ) : (
-                  <EmptyState title="No Teams Yet" description="Be the first to create a team for this hackathon!" actionText="Go to Camp" onAction={() => router.push(`/camp?hackathon=${detailData.slug}`)} />
+                  <EmptyState title="No Teams Yet" description="Be the first to create a team for this hackathon!" actionText="Go to Camp" onAction={() => router.push(`/camp?hackathon=${detailData.slug}&create=true`)} />
                 )}
               </section>
 
